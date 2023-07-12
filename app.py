@@ -18,26 +18,21 @@ gender_data = pd.DataFrame({
     'total count': purchase_data['Gender'].value_counts()
 })
 
-# Purchasing Analysis (Gender)
-gender_purchasing_analysis_df = purchase_data.groupby('Gender').agg({
-    'SN': 'count',
-    'Price': ['mean', lambda x: x.sum() / num_of_players]
-})
-gender_purchasing_analysis_df.columns = ['purchase count', 'average purchase price', 'average purchase total per person']
-
 # Age Demographics
 bins = [0, 10, 15, 20, 25, 30, 35, 40, 200]
 labels = ['less than 10', '10 - 14', '15 - 19', '20 - 24', '25 - 29', '30 - 34', '35 - 39', 'greater than 40']
-purchase_data['age range'] = pd.cut(purchase_data['Age'], bins=bins, labels=labels)
-age_demographics = purchase_data.drop_duplicates(subset='SN').groupby('age range').size().reset_index(name='total count')
+age_demographics = purchase_data.drop_duplicates(subset='SN').groupby(pd.cut(purchase_data['Age'], bins=bins, labels=labels)).size().reset_index(name='total count')
 age_demographics['percentage of players'] = age_demographics['total count'] / num_of_players * 100
 
-# Purchasing Analysis (Age)
-age_purchasing_demo = purchase_data.groupby('age range').agg({
-    'SN': 'count',
-    'Price': ['mean', lambda x: x.sum() / num_of_players]
-})
-age_purchasing_demo.columns = ['purchase count', 'average purchase price', 'average purchase total per person']
+# Purchasing Analysis (Gender and Age)
+purchasing_columns = {
+    'purchase count': 'SN',
+    'average purchase price': 'Price',
+    'average purchase total per person': lambda x: x.sum() / num_of_players
+}
+
+gender_purchasing_analysis_df = purchase_data.groupby('Gender').agg(purchasing_columns)
+age_purchasing_demo = purchase_data.groupby(pd.cut(purchase_data['Age'], bins=bins, labels=labels)).agg(purchasing_columns)
 
 # Top Spenders
 top_spenders = purchase_data.groupby('SN').agg({
