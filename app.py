@@ -9,6 +9,7 @@ def get_num_of_players(data_frame):
 def create_summary_data_frame(data_frame):
     average_price = data_frame['Price'].mean()
     unique_items_count = data_frame['Item Name'].nunique()
+    
     return pd.DataFrame({
         'average price': [average_price],
         'number of unique items': [unique_items_count]
@@ -18,6 +19,7 @@ def calculate_gender_demographics(data_frame):
     gender_counts = data_frame['Gender'].value_counts()
     total_gender_count = gender_counts.sum()
     percentage_of_players = gender_counts.div(total_gender_count) * 100
+    
     return pd.DataFrame({
         'total count': gender_counts,
         'percentage of players': percentage_of_players
@@ -27,10 +29,12 @@ def calculate_age_demographics(data_frame, bins, labels, num_of_players):
     age_group_counts = data_frame.drop_duplicates(subset='SN').groupby(
         pd.cut(data_frame['Age'], bins=bins, labels=labels)
     )['SN'].size().reset_index(name='Total_Count')
+    
     age_group_counts['Percentage_of_Players'] = age_group_counts['Total_Count'] / num_of_players * 100
+    
     return age_group_counts.copy()
 
-def perform_gender_purchasing_analysis(data_frame):
+def perform_gender_purchasing_analysis(data_frame, num_of_players):
     return data_frame.groupby('Gender').agg(
         purchase_count=('SN', 'count'),
         average_purchase_price=('Price', 'mean'),
@@ -82,7 +86,7 @@ labels = ['less than 10'] + [f'{i} - {i + 4}' for i in range(10, 45, 5)]
 age_demographics = calculate_age_demographics(purchase_data, bins, labels, num_of_players)
 
 # Purchasing Analysis (Gender)
-gender_purchasing_analysis_df = perform_gender_purchasing_analysis(purchase_data)
+gender_purchasing_analysis_df = perform_gender_purchasing_analysis(purchase_data, num_of_players)
 
 # Purchasing Analysis (Age)
 age_purchasing_demo = perform_age_purchasing_analysis(purchase_data, bins, labels, num_of_players)
